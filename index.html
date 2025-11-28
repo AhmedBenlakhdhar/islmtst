@@ -103,7 +103,6 @@
         }
         .legend-item { display: flex; align-items: center; gap: 6px; }
         
-        /* Icons for Legend */
         .icon-legend { width: 14px; height: 14px; display: inline-block; position: relative; border-radius: 50%; }
         .icon-legend.man { background: var(--blue); }
         .icon-legend.hijabi { background: var(--green); }
@@ -236,12 +235,12 @@
             
             <div class="tutorial-step">
                 <span class="step-icon">👀</span>
-                <div class="step-text"><strong>العيون:</strong> نظرات الرجال (الزرق) إليكِ وأنتِ مستترة = أجر. وأنتِ متبرجة = وزر.</div>
+                <div class="step-text"><strong>الستر:</strong> الحجاب عبادة مستمرة، وحماية لكِ من الإثم عند مرور الرجال، لكن الأفضل هو الابتعاد عن أماكن تواجدهم (عدم الاختلاط).</div>
             </div>
             
             <div class="tutorial-step">
                 <span class="step-icon">⭐</span>
-                <div class="step-text"><strong>المهمة:</strong> حركي "النجمة" للابتعاد عن الرجال (ستر) والاقتراب من الفتيات (تأثير).</div>
+                <div class="step-text"><strong>المهمة:</strong> حركي "النجمة" للابتعاد عن الرجال (ستر وحياء) والاقتراب من الفتيات (تأثير إيجابي).</div>
             </div>
         </div>
 
@@ -275,7 +274,6 @@
             else if (type === 'bad') eventLog.style.color = 'var(--red)';
             else eventLog.style.color = 'var(--yellow)';
             
-            // Clear log after 3 seconds
             clearTimeout(window.logTimeout);
             window.logTimeout = setTimeout(() => {
                 eventLog.innerText = "";
@@ -293,9 +291,7 @@
         window.addEventListener('resize', resize);
 
         class Agent {
-            constructor() { 
-                this.reset(true); 
-            }
+            constructor() { this.reset(true); }
 
             reset(randomPos = false) {
                 this.type = Math.random() < 0.4 ? 'man' : 'woman';
@@ -339,29 +335,26 @@
                     ctx.arc(this.x, this.y, 9, 0, Math.PI * 2);
                     ctx.fillStyle = '#3b82f6';
                     ctx.fill();
-                    // Beard hint
                     ctx.beginPath();
                     ctx.arc(this.x, this.y + 2, 6, 0.5, Math.PI - 0.5);
                     ctx.fillStyle = 'rgba(0,0,0,0.2)';
                     ctx.fill();
 
                 } else {
-                    // WOMAN
                     if (this.state === 'good') {
                         // HIJABI
                         ctx.beginPath();
                         ctx.arc(this.x, this.y, 10, 0, Math.PI * 2);
-                        ctx.fillStyle = '#10b981'; // Green Veil
+                        ctx.fillStyle = '#10b981'; 
                         ctx.fill();
                         ctx.beginPath();
                         ctx.ellipse(this.x, this.y, 5, 6, 0, 0, Math.PI * 2);
-                        ctx.fillStyle = '#f5d0b0'; // Skin
+                        ctx.fillStyle = '#f5d0b0'; 
                         ctx.fill();
 
                     } else {
                         // NON-HIJABI
                         const hairColor = (this.state === 'bad') ? '#ef4444' : '#ec4899'; 
-                        
                         ctx.beginPath();
                         ctx.arc(this.x, this.y, 10, 0, Math.PI * 2);
                         ctx.fillStyle = hairColor;
@@ -410,19 +403,20 @@
                 drawVisionLine(man.x, man.y, player.x, player.y, mode === 'hijab', distP < MAN_MIXING_RANGE);
                 
                 if (mode === 'hijab') {
-                    if (distP > MAN_MIXING_RANGE && Math.random() < 0.05) {
-                        goodScore += 1; 
-                        // Log occasionally
-                        if(Math.random() < 0.1) logEvent("أجر ستر عن رجل (+1)", "good");
+                    // No Reward for being seen (Correction)
+                    // We only warn if Mixing (Too close)
+                    if (distP < MAN_MIXING_RANGE) {
+                         if(Math.random() < 0.05) logEvent("تحذير: اختلاط!", "yellow");
                     }
                 } else {
+                    // Tabarruj: Being seen is Sin
                     if (Math.random() < 0.05) {
                         badScore += 5; 
                         if(Math.random() < 0.1) logEvent("إثم فتنة رجل (-5)", "bad");
                     }
                 }
             } else {
-                // Avoidance (Long range protection)
+                // Avoidance (Haya) - Not being seen at all
                 if (mode === 'hijab' && Math.random() < 0.003) {
                     goodScore += 5; 
                     createFloater(player.x, player.y - 20, "حياء +5", "good");
@@ -430,7 +424,7 @@
                 }
             }
 
-            // B. Man vs Influenced Women (Chain Reaction)
+            // B. Man vs Influenced Women
             agents.forEach(woman => {
                 if (woman.type === 'woman' && woman.source === 'player') {
                     const distW = Math.hypot(woman.x - man.x, woman.y - man.y);
@@ -442,12 +436,8 @@
                         ctx.strokeStyle = 'rgba(255,255,255,0.1)';
                         ctx.stroke();
 
-                        if (woman.state === 'good') {
-                            if (Math.random() < 0.05) {
-                                goodScore += 0.5;
-                                if(Math.random() < 0.05) logEvent("أجر ستر جاري من فتاة (+0.5)", "good");
-                            }
-                        } else if (woman.state === 'bad') {
+                        if (woman.state === 'bad') {
+                            // Immodest woman (influenced by you) seen by man -> You get sin
                             if (Math.random() < 0.05) {
                                 badScore += 2;
                                 if(Math.random() < 0.05) logEvent("وزر فتنة جاري من فتاة (-2)", "bad");
@@ -469,11 +459,11 @@
                     ctx.strokeStyle = '#f59e0b';
                     ctx.setLineDash([2, 2]); ctx.stroke(); ctx.setLineDash([]);
                 } else {
-                    ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)';
+                    ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)'; // Green Shield
                     ctx.stroke();
                 }
             } else {
-                ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)'; // Red Sin
                 ctx.stroke();
             }
         }
@@ -546,16 +536,18 @@
         function loop() {
             ctx.clearRect(0, 0, width, height);
             
-            // Passive Timer
+            // Passive Timer (Hasanat for just wearing Hijab)
             passiveTimer++;
             pulseRadius += 0.5;
             if (pulseRadius > 40) pulseRadius = 15;
-            if (passiveTimer % 10 === 0) { 
-                if (mode === 'hijab') goodScore += 0.2; 
-                else badScore += 0.2; 
+            
+            // Increased passive reward for Hijab to compensate for lack of "being seen" points
+            if (passiveTimer % 8 === 0) { 
+                if (mode === 'hijab') goodScore += 0.4; // Obedience Reward
+                else badScore += 0.2; // Sin of Tabarruj
             }
 
-            // Draw Player (The Star)
+            // Draw Player (Star)
             ctx.save();
             ctx.translate(player.x, player.y);
             
@@ -575,7 +567,7 @@
             ctx.stroke();
             ctx.setLineDash([]);
             
-            // Draw Large Star Body
+            // Large Star
             ctx.beginPath();
             for (let i = 0; i < 5; i++) {
                 ctx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * 18, -Math.sin((18 + i * 72) * Math.PI / 180) * 18);
@@ -590,7 +582,7 @@
             }
             ctx.fill();
             
-            // Face detail (Small oval)
+            // Face detail
             ctx.beginPath();
             ctx.arc(0, 0, 6, 0, Math.PI*2);
             ctx.fillStyle = '#f5d0b0';
