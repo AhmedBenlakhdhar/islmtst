@@ -43,7 +43,7 @@
             z-index: 10;
         }
 
-        .stat-box { text-align: center; min-width: 80px; }
+        .stat-box { text-align: center; min-width: 90px; }
         .stat-label { font-size: 0.7rem; opacity: 0.7; display: block; margin-bottom: 2px; }
         .stat-val { font-size: 1.2rem; font-weight: 900; direction: ltr; display: block; }
         .stat-val.good { color: var(--green); text-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
@@ -85,7 +85,7 @@
             font-size: 0.7rem;
             color: #cbd5e1;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
         }
         .legend-item { display: flex; align-items: center; gap: 4px; }
         .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
@@ -139,7 +139,7 @@
         /* Tutorial Overlay */
         .tutorial {
             position: fixed; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.92);
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             z-index: 100;
@@ -147,8 +147,9 @@
             box-sizing: border-box;
             text-align: center;
         }
-        .tutorial h2 { color: var(--green); margin-top: 0; }
-        .tutorial p { line-height: 1.6; max-width: 450px; color: #e2e8f0; font-size: 0.9rem; margin-bottom: 10px; }
+        .tutorial h2 { color: var(--green); margin-top: 0; font-size: 1.5rem; }
+        .tutorial p { line-height: 1.6; max-width: 450px; color: #e2e8f0; font-size: 1rem; margin-bottom: 15px; }
+        .tutorial .highlight { color: #facc15; font-weight: bold; }
         .start-btn {
             margin-top: 20px;
             background: var(--green); color: #0f172a;
@@ -180,13 +181,13 @@
         <div class="legend-bar">
             <div class="legend-item"><span class="dot blue"></span> رجال</div>
             <div class="legend-item"><span class="dot pink"></span> فتيات</div>
-            <div class="legend-item"><span class="dot green"></span> خير</div>
-            <div class="legend-item"><span class="dot red"></span> سوء</div>
+            <div class="legend-item"><span class="dot green"></span> خير جاري</div>
+            <div class="legend-item"><span class="dot red"></span> إثم جاري</div>
             <div class="legend-item"><span class="dot yellow"></span> اختلاط</div>
         </div>
 
         <div class="controls">
-            <div class="instruction">أنتِ النجمة ⭐. لاحظي العداد المستمر بناءً على حالتك.</div>
+            <div class="instruction">أنتِ النجمة ⭐. الأثر ينتقل منكِ إلى غيركِ، ثم يعود إليكِ.</div>
             <div class="mode-switch">
                 <button class="mode-btn active-hijab" id="btnHijab" onclick="setMode('hijab')">
                     حجاب
@@ -201,10 +202,11 @@
     </div>
 
     <div class="tutorial" id="tutorial">
-        <h2>أهم قاعدة في الميزان</h2>
-        <p>1. <strong>العداد المستمر:</strong> مجرد خروجك متبرجة يُحسب عليكِ سيئات <strong>تلقائياً</strong> (إثم المعصية)، بينما الحجاب يُحسب لكِ حسنات <strong>تلقائياً</strong> (أجر الطاعة والصبر).</p>
-        <p>2. <strong>التفاعل:</strong> هذا بالإضافة لما تكسبينه من التأثير في الفتيات أو فتنة الرجال.</p>
-        <button class="start-btn" onclick="document.getElementById('tutorial').style.display='none'; initSim();">فهمت، ابدأ</button>
+        <h2>قاعدة "الدال على الخير"</h2>
+        <p>1. <strong>المكان:</strong> تحكمي في مكانك (النجمة) لتجنب نظرات الرجال (الزرق) الذين يرون من مسافة بعيدة.</p>
+        <p>2. <strong>الأثر:</strong> الفتيات (الوردي) يتأثرن بحالك.</p>
+        <p class="highlight">3. <strong>النتيجة الجارية:</strong> إذا تأثرت فتاة بكِ، فإن كل حسنة تفعلها أو سيئة تقع فيها بسببكِ، تُكتب في ميزانكِ أيضاً.</p>
+        <button class="start-btn" onclick="document.getElementById('tutorial').style.display='none'; initSim();">ابدأ المحاكاة</button>
     </div>
 
     <script>
@@ -216,12 +218,11 @@
         let goodScore = 0;
         let badScore = 0;
         
-        // Passive counter logic
         let passiveTimer = 0;
         let pulseRadius = 0;
         
-        const NPC_COUNT = 20; 
-        const MAN_VISION_RANGE = 120; 
+        const NPC_COUNT = 22; 
+        const MAN_VISION_RANGE = 200; // Increased significantly
         const MAN_MIXING_RANGE = 50;  
         const GIRL_INFLUENCE_RANGE = 85;
         
@@ -239,10 +240,15 @@
         window.addEventListener('resize', resize);
 
         class Agent {
-            constructor() { this.reset(true); }
+            constructor() { 
+                this.reset(true); 
+            }
 
             reset(randomPos = false) {
                 this.type = Math.random() < 0.4 ? 'man' : 'woman';
+                // Track who caused this agent's current state (null or 'player')
+                this.source = null; 
+
                 if (randomPos) {
                     this.x = Math.random() * width;
                     this.y = Math.random() * height;
@@ -285,6 +291,14 @@
                     else if (this.state === 'bad') ctx.fillStyle = '#ef4444'; 
                 }
                 ctx.fill();
+
+                // Mark agents influenced by player with a small dot
+                if (this.source === 'player') {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y - 12, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = '#fff';
+                    ctx.fill();
+                }
             }
         }
 
@@ -306,68 +320,118 @@
             }
         }
 
-        function checkManInteractions(man) {
-            const dx = player.x - man.x;
-            const dy = player.y - man.y;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-
-            if (dist < MAN_VISION_RANGE) {
-                ctx.beginPath();
-                ctx.moveTo(man.x, man.y);
-                ctx.lineTo(player.x, player.y);
-                ctx.lineWidth = 1;
-
+        // 1. Man seeing ANY Woman (Player or Agent)
+        function checkManLogic(man) {
+            // A. Man vs Player
+            const distP = Math.hypot(player.x - man.x, player.y - man.y);
+            if (distP < MAN_VISION_RANGE) {
+                drawVisionLine(man.x, man.y, player.x, player.y, mode === 'hijab', distP < MAN_MIXING_RANGE);
+                
                 if (mode === 'hijab') {
-                    if (dist < MAN_MIXING_RANGE) {
-                        ctx.strokeStyle = '#f59e0b';
-                        ctx.setLineDash([2, 2]); ctx.stroke(); ctx.setLineDash([]);
-                        if (Math.random() < 0.03) createFloater(player.x, player.y - 30, "تجنبي الاختلاط!", "yellow");
-                    } else {
-                        ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)';
-                        ctx.stroke();
-                        if (Math.random() < 0.05) goodScore += 1;
-                    }
+                    if (distP > MAN_MIXING_RANGE && Math.random() < 0.05) goodScore += 1; // Sitr reward
                 } else {
-                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)';
-                    ctx.stroke();
-                    if (Math.random() < 0.05) badScore += 5;
+                    if (Math.random() < 0.05) badScore += 5; // Fitnah sin
                 }
             } else {
+                // Avoidance reward
                 if (mode === 'hijab' && Math.random() < 0.003) {
                     goodScore += 5; 
-                    createFloater(player.x, player.y - 20, "حياء وابتعاد +5", "good");
+                    createFloater(player.x, player.y - 20, "حياء +5", "good");
                 }
+            }
+
+            // B. Man vs Other Women (Recursive Sin/Reward)
+            agents.forEach(woman => {
+                if (woman.type === 'woman' && woman.source === 'player') {
+                    const distW = Math.hypot(woman.x - man.x, woman.y - man.y);
+                    if (distW < MAN_VISION_RANGE) {
+                        // Draw faint line to show connection
+                        ctx.beginPath();
+                        ctx.moveTo(man.x, man.y);
+                        ctx.lineTo(woman.x, woman.y);
+                        ctx.lineWidth = 0.5;
+                        ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                        ctx.stroke();
+
+                        if (woman.state === 'good') {
+                            // She is modest because of you -> You get reward
+                            if (Math.random() < 0.05) goodScore += 0.5;
+                        } else if (woman.state === 'bad') {
+                            // She is immodest because of you -> You get sin
+                            if (Math.random() < 0.05) badScore += 2;
+                        }
+                    }
+                }
+            });
+        }
+
+        function drawVisionLine(x1, y1, x2, y2, isHijab, isMixing) {
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.lineWidth = 1;
+            
+            if (isHijab) {
+                if (isMixing) {
+                    ctx.strokeStyle = '#f59e0b'; // Yellow
+                    ctx.setLineDash([2, 2]); ctx.stroke(); ctx.setLineDash([]);
+                } else {
+                    ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)'; // Green
+                    ctx.stroke();
+                }
+            } else {
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)'; // Red
+                ctx.stroke();
             }
         }
 
-        function checkWomanInteractions(woman) {
-            const dx = player.x - woman.x;
-            const dy = player.y - woman.y;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-
-            if (dist < GIRL_INFLUENCE_RANGE) {
+        // 2. Woman Influencing Woman (Viral Effect)
+        function checkWomanLogic(woman) {
+            // A. Player influencing Woman
+            const distP = Math.hypot(player.x - woman.x, player.y - woman.y);
+            if (distP < GIRL_INFLUENCE_RANGE) {
                 if (mode === 'hijab') {
-                    if (woman.state === 'neutral' && Math.random() < 0.015) {
+                    if (woman.state === 'neutral' && Math.random() < 0.02) {
                         woman.state = 'good';
+                        woman.source = 'player'; // YOU caused this
                         goodScore += 40; 
                         createFloater(woman.x, woman.y, "تأثرت بكِ!", "good");
                     }
                 } else {
-                    if (woman.state === 'neutral' && Math.random() < 0.015) {
+                    if (woman.state === 'neutral' && Math.random() < 0.02) {
                         woman.state = 'bad';
+                        woman.source = 'player'; // YOU caused this
                         badScore += 40;
                         createFloater(woman.x, woman.y, "تأثرت بـ تبرجكِ", "bad");
                     }
                 }
             }
-            for (let other of agents) {
-                if (other === woman || other.type === 'man') continue;
+
+            // B. Woman influencing Woman (Chain Reaction)
+            // If 'woman' was influenced by player, and she influences 'other', 'other' is also attributed to player
+            agents.forEach(other => {
+                if (other === woman || other.type === 'man') return;
                 const d2 = Math.hypot(woman.x - other.x, woman.y - other.y);
-                if (d2 < 60) { 
-                    if (woman.state === 'good' && other.state === 'neutral' && Math.random() < 0.005) other.state = 'good';
-                    if (woman.state === 'bad' && other.state === 'neutral' && Math.random() < 0.005) other.state = 'bad';
+                
+                if (d2 < 60 && other.state === 'neutral') {
+                    if (woman.state === 'good' && Math.random() < 0.01) {
+                        other.state = 'good';
+                        if (woman.source === 'player') {
+                            other.source = 'player'; // Chain continues
+                            goodScore += 20; // Indirect reward
+                            createFloater(other.x, other.y, "أثر جاري +", "good");
+                        }
+                    }
+                    if (woman.state === 'bad' && Math.random() < 0.01) {
+                        other.state = 'bad';
+                        if (woman.source === 'player') {
+                            other.source = 'player'; // Chain continues
+                            badScore += 20; // Indirect sin
+                            createFloater(other.x, other.y, "وزر جاري +", "bad");
+                        }
+                    }
                 }
-            }
+            });
         }
 
         function createFloater(x, y, text, type) {
@@ -386,28 +450,27 @@
         function loop() {
             ctx.clearRect(0, 0, width, height);
             
-            // --- PASSIVE LOGIC & PULSE ---
+            // Passive Timer
             passiveTimer++;
             pulseRadius += 0.5;
             if (pulseRadius > 40) pulseRadius = 15;
-
-            // Increment passive scores continuously
-            if (passiveTimer % 10 === 0) { // Every few frames
-                if (mode === 'hijab') goodScore += 0.2; // Passive Reward (Obedience)
-                else badScore += 0.2; // Passive Sin (Disobedience)
+            if (passiveTimer % 10 === 0) { 
+                if (mode === 'hijab') goodScore += 0.2; 
+                else badScore += 0.2; 
             }
 
+            // Draw Player
             ctx.save();
             ctx.translate(player.x, player.y);
             
-            // Pulse Effect (Visualizing the State)
+            // Pulse
             ctx.beginPath();
             ctx.arc(0, 0, pulseRadius, 0, Math.PI * 2);
             ctx.strokeStyle = mode === 'hijab' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)';
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Range Circle
+            // Range
             ctx.beginPath();
             ctx.arc(0, 0, GIRL_INFLUENCE_RANGE, 0, Math.PI*2);
             ctx.setLineDash([4, 4]);
@@ -423,23 +486,20 @@
                 ctx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * 7, -Math.sin((54 + i * 72) * Math.PI / 180) * 7);
             }
             ctx.closePath();
-            
             if (mode === 'hijab') {
-                ctx.fillStyle = '#10b981';
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 2;
-                ctx.stroke();
+                ctx.fillStyle = '#10b981'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
             } else {
                 ctx.fillStyle = '#ef4444';
             }
             ctx.fill();
             ctx.restore();
 
+            // Update Agents
             agents.forEach(agent => {
                 agent.update();
                 agent.draw();
-                if (agent.type === 'man') checkManInteractions(agent);
-                else checkWomanInteractions(agent);
+                if (agent.type === 'man') checkManLogic(agent);
+                else checkWomanLogic(agent);
             });
 
             document.getElementById('goodScore').innerText = Math.floor(goodScore);
