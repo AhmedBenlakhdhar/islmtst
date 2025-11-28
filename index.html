@@ -27,108 +27,97 @@
             background-color: var(--bg);
             color: var(--text);
             font-family: 'Tajawal', sans-serif;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            touch-action: none;
+            position: fixed; inset: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; touch-action: none;
         }
 
         /* Top Stats Bar */
         .stats-bar {
+            flex-shrink: 0;
             display: flex;
             justify-content: space-between;
-            padding: 15px 20px;
+            padding: 10px 15px;
             background: rgba(30, 41, 59, 0.95);
             backdrop-filter: blur(5px);
             border-bottom: 1px solid rgba(255,255,255,0.1);
             z-index: 10;
         }
 
-        .stat-box { text-align: center; min-width: 100px; }
-        .stat-label { font-size: 0.75rem; opacity: 0.7; display: block; margin-bottom: 2px; }
-        .stat-val { font-size: 1.4rem; font-weight: 900; direction: ltr; display: block; }
+        .stat-box { text-align: center; min-width: 80px; }
+        .stat-label { font-size: 0.7rem; opacity: 0.7; display: block; margin-bottom: 2px; }
+        .stat-val { font-size: 1.2rem; font-weight: 900; direction: ltr; display: block; }
         .stat-val.good { color: var(--green); text-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
         .stat-val.bad { color: var(--red); text-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
 
-        /* Canvas */
+        /* Canvas Container */
+        .canvas-container {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
         #simCanvas {
-            flex: 1;
+            display: block;
             width: 100%;
             height: 100%;
             cursor: crosshair;
         }
 
+        /* Bottom Section */
+        .bottom-section {
+            flex-shrink: 0;
+            background: var(--panel);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.4);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+        }
+
         /* Legend Bar */
         .legend-bar {
-            background: rgba(15, 23, 42, 0.9);
             padding: 8px 10px;
             display: flex;
-            justify-content: space-around;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            font-size: 0.75rem;
+            justify-content: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.7rem;
             color: #cbd5e1;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 10px;
         }
-        .legend-item { display: flex; align-items: center; gap: 5px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
         .dot.blue { background: var(--blue); }
         .dot.pink { background: var(--pink); }
         .dot.green { background: var(--green); }
         .dot.red { background: var(--red); }
         .dot.yellow { background: var(--yellow); }
 
-        /* Bottom Controls */
-        .controls {
-            padding: 15px 20px 25px;
-            background: var(--panel);
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.4);
-            z-index: 10;
-        }
-
-        .instruction {
-            text-align: center;
-            font-size: 0.9rem;
-            color: #94a3b8;
-            margin-bottom: 15px;
-        }
-
+        /* Controls */
+        .controls { padding: 10px 15px 20px; }
+        .instruction { text-align: center; font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px; }
         .mode-switch { display: flex; gap: 10px; }
 
         .mode-btn {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             border: 2px solid transparent;
             border-radius: 12px;
             background: #334155;
             color: #cbd5e1;
             font-family: inherit;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.95rem;
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
         }
+        .mode-btn span { font-size: 0.65rem; font-weight: normal; opacity: 0.8; }
 
-        .mode-btn span { font-size: 0.7rem; font-weight: normal; opacity: 0.8; }
-
-        .mode-btn.active-hijab {
-            background: rgba(16, 185, 129, 0.15);
-            border-color: var(--green);
-            color: var(--green);
-        }
-
-        .mode-btn.active-tabarruj {
-            background: rgba(239, 68, 68, 0.15);
-            border-color: var(--red);
-            color: var(--red);
-        }
+        .mode-btn.active-hijab { background: rgba(16, 185, 129, 0.15); border-color: var(--green); color: var(--green); }
+        .mode-btn.active-tabarruj { background: rgba(239, 68, 68, 0.15); border-color: var(--red); color: var(--red); }
 
         /* Floating Text */
         .floater {
@@ -137,7 +126,7 @@
             font-weight: bold;
             pointer-events: none;
             white-space: nowrap;
-            animation: floatAndFade 2s forwards; /* Slower animation */
+            animation: floatAndFade 2s forwards;
             z-index: 5;
             text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
@@ -159,7 +148,7 @@
             text-align: center;
         }
         .tutorial h2 { color: var(--green); margin-top: 0; }
-        .tutorial p { line-height: 1.7; max-width: 450px; color: #e2e8f0; font-size: 0.95rem; }
+        .tutorial p { line-height: 1.6; max-width: 450px; color: #e2e8f0; font-size: 0.9rem; margin-bottom: 10px; }
         .start-btn {
             margin-top: 20px;
             background: var(--green); color: #0f172a;
@@ -174,46 +163,47 @@
 
     <div class="stats-bar">
         <div class="stat-box">
-            <span class="stat-label">سيئات (فتنة/تأثير)</span>
+            <span class="stat-label">سيئات (جارية/تأثير)</span>
             <span class="stat-val bad" id="badScore">0</span>
         </div>
         <div class="stat-box">
-            <span class="stat-label">حسنات (ستر/دعوة)</span>
+            <span class="stat-label">حسنات (طاعة/ستر)</span>
             <span class="stat-val good" id="goodScore">0</span>
         </div>
     </div>
 
-    <canvas id="simCanvas"></canvas>
-
-    <!-- Legend -->
-    <div class="legend-bar">
-        <div class="legend-item"><span class="dot blue"></span> رجال (أجانب)</div>
-        <div class="legend-item"><span class="dot pink"></span> فتيات</div>
-        <div class="legend-item"><span class="dot green"></span> خير</div>
-        <div class="legend-item"><span class="dot red"></span> سوء</div>
-        <div class="legend-item"><span class="dot yellow"></span> خطر الاختلاط</div>
+    <div class="canvas-container">
+        <canvas id="simCanvas"></canvas>
     </div>
 
-    <div class="controls">
-        <div class="instruction">أنتِ النجمة ⭐. تحركي ببطء وتجنبي الزحام.</div>
-        <div class="mode-switch">
-            <button class="mode-btn active-hijab" id="btnHijab" onclick="setMode('hijab')">
-                حجاب
-                <span>(ستر + دعوة صامتة)</span>
-            </button>
-            <button class="mode-btn" id="btnTabarruj" onclick="setMode('tabarruj')">
-                تبرج
-                <span>(فتنة + ذنوب جارية)</span>
-            </button>
+    <div class="bottom-section">
+        <div class="legend-bar">
+            <div class="legend-item"><span class="dot blue"></span> رجال</div>
+            <div class="legend-item"><span class="dot pink"></span> فتيات</div>
+            <div class="legend-item"><span class="dot green"></span> خير</div>
+            <div class="legend-item"><span class="dot red"></span> سوء</div>
+            <div class="legend-item"><span class="dot yellow"></span> اختلاط</div>
+        </div>
+
+        <div class="controls">
+            <div class="instruction">أنتِ النجمة ⭐. لاحظي العداد المستمر بناءً على حالتك.</div>
+            <div class="mode-switch">
+                <button class="mode-btn active-hijab" id="btnHijab" onclick="setMode('hijab')">
+                    حجاب
+                    <span>(طاعة مستمرة + ستر)</span>
+                </button>
+                <button class="mode-btn" id="btnTabarruj" onclick="setMode('tabarruj')">
+                    تبرج
+                    <span>(إثم مستمر + فتنة)</span>
+                </button>
+            </div>
         </div>
     </div>
 
     <div class="tutorial" id="tutorial">
-        <h2>كيف يعمل الميزان؟</h2>
-        <p>1. <strong>الستر (الأخضر):</strong> في وضع الحجاب، إذا رآكِ الرجال من بعيد، يُكتب لكِ أجر الستر.</p>
-        <p>2. <strong>الاختلاط (الأصفر):</strong> حتى بالحجاب، الاقتراب الشديد من الرجال "مخاطرة" وقد يفتح باب فتنة (تتوقف الحسنات).</p>
-        <p>3. <strong>الفتنة (الأحمر):</strong> في وضع التبرج، أي نظرة من رجل تُحتسب سيئات مؤكدة.</p>
-        <p>4. <strong>التأثير:</strong> تؤثرين في الفتيات (اللون الوردي) تلقائياً بمجرد المرور بجانبهن.</p>
+        <h2>أهم قاعدة في الميزان</h2>
+        <p>1. <strong>العداد المستمر:</strong> مجرد خروجك متبرجة يُحسب عليكِ سيئات <strong>تلقائياً</strong> (إثم المعصية)، بينما الحجاب يُحسب لكِ حسنات <strong>تلقائياً</strong> (أجر الطاعة والصبر).</p>
+        <p>2. <strong>التفاعل:</strong> هذا بالإضافة لما تكسبينه من التأثير في الفتيات أو فتنة الرجال.</p>
         <button class="start-btn" onclick="document.getElementById('tutorial').style.display='none'; initSim();">فهمت، ابدأ</button>
     </div>
 
@@ -222,25 +212,25 @@
         const ctx = canvas.getContext('2d');
         
         let width, height;
-        let mode = 'hijab'; // hijab | tabarruj
+        let mode = 'hijab'; 
         let goodScore = 0;
         let badScore = 0;
         
-        // Configuration
-        const NPC_COUNT = 20; // Fewer people for clarity
-        const MAN_VISION_RANGE = 120; // Vision distance
-        const MAN_MIXING_RANGE = 50;  // Danger/Mixing zone
+        // Passive counter logic
+        let passiveTimer = 0;
+        let pulseRadius = 0;
+        
+        const NPC_COUNT = 20; 
+        const MAN_VISION_RANGE = 120; 
+        const MAN_MIXING_RANGE = 50;  
         const GIRL_INFLUENCE_RANGE = 85;
         
-        // Player
         const player = { x: 0, y: 0 };
-        
-        // Entities
         let agents = [];
 
         function resize() {
-            width = window.innerWidth;
-            height = window.innerHeight - 200; 
+            width = canvas.clientWidth;
+            height = canvas.clientHeight;
             canvas.width = width;
             canvas.height = height;
             player.x = width / 2;
@@ -249,13 +239,10 @@
         window.addEventListener('resize', resize);
 
         class Agent {
-            constructor() {
-                this.reset(true);
-            }
+            constructor() { this.reset(true); }
 
             reset(randomPos = false) {
                 this.type = Math.random() < 0.4 ? 'man' : 'woman';
-                
                 if (randomPos) {
                     this.x = Math.random() * width;
                     this.y = Math.random() * height;
@@ -268,10 +255,8 @@
                         this.y = Math.random() < 0.5 ? -20 : height + 20;
                     }
                 }
-
-                // Slow Movement (Serious Simulation)
                 const angle = Math.random() * Math.PI * 2;
-                const speed = (0.15 + Math.random() * 0.25); // Very Slow
+                const speed = (0.15 + Math.random() * 0.25); 
                 this.vx = Math.cos(angle) * speed;
                 this.vy = Math.sin(angle) * speed;
 
@@ -286,16 +271,12 @@
             update() {
                 this.x += this.vx;
                 this.y += this.vy;
-
-                if (this.x < -50 || this.x > width + 50 || this.y < -50 || this.y > height + 50) {
-                    this.reset();
-                }
+                if (this.x < -50 || this.x > width + 50 || this.y < -50 || this.y > height + 50) this.reset();
             }
 
             draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, 7, 0, Math.PI * 2);
-                
                 if (this.type === 'man') {
                     ctx.fillStyle = '#3b82f6'; 
                 } else {
@@ -310,9 +291,7 @@
         function initSim() {
             resize();
             agents = [];
-            for (let i = 0; i < NPC_COUNT; i++) {
-                agents.push(new Agent());
-            }
+            for (let i = 0; i < NPC_COUNT; i++) agents.push(new Agent());
             requestAnimationFrame(loop);
         }
 
@@ -332,7 +311,6 @@
             const dy = player.y - man.y;
             const dist = Math.sqrt(dx*dx + dy*dy);
 
-            // Logic: Is he within interaction range?
             if (dist < MAN_VISION_RANGE) {
                 ctx.beginPath();
                 ctx.moveTo(man.x, man.y);
@@ -340,34 +318,21 @@
                 ctx.lineWidth = 1;
 
                 if (mode === 'hijab') {
-                    // Hijab Mode Logic
                     if (dist < MAN_MIXING_RANGE) {
-                        // Too close! Mixing Zone (Risk)
-                        ctx.strokeStyle = '#f59e0b'; // Yellow
-                        ctx.setLineDash([2, 2]); // Dashed warning line
-                        ctx.stroke();
-                        ctx.setLineDash([]);
-                        
-                        // No Good Points here (Risk of Fitnah)
-                        if (Math.random() < 0.03) {
-                            createFloater(player.x, player.y - 30, "تجنبي الاختلاط!", "yellow");
-                        }
+                        ctx.strokeStyle = '#f59e0b';
+                        ctx.setLineDash([2, 2]); ctx.stroke(); ctx.setLineDash([]);
+                        if (Math.random() < 0.03) createFloater(player.x, player.y - 30, "تجنبي الاختلاط!", "yellow");
                     } else {
-                        // Seen but distant (Sitr)
-                        ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)'; // Green
+                        ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)';
                         ctx.stroke();
-                        // Small reward for maintaining Sitr in public
                         if (Math.random() < 0.05) goodScore += 1;
                     }
                 } else {
-                    // Tabarruj Mode Logic (Sure Sayyi'at)
-                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)'; // Red
+                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.6)';
                     ctx.stroke();
                     if (Math.random() < 0.05) badScore += 5;
                 }
             } else {
-                // He is far away (Best scenario for Hijab)
-                // Avoidance Reward (Haya)
                 if (mode === 'hijab' && Math.random() < 0.003) {
                     goodScore += 5; 
                     createFloater(player.x, player.y - 20, "حياء وابتعاد +5", "good");
@@ -395,21 +360,12 @@
                     }
                 }
             }
-
-            // Independent Network Effect (Society influences itself)
             for (let other of agents) {
                 if (other === woman || other.type === 'man') continue;
                 const d2 = Math.hypot(woman.x - other.x, woman.y - other.y);
-
                 if (d2 < 60) { 
-                    if (woman.state === 'good' && other.state === 'neutral' && Math.random() < 0.005) {
-                        other.state = 'good'; // Good deeds spread
-                        if (Math.random() < 0.5) goodScore += 5; // Indirect reward
-                    }
-                    if (woman.state === 'bad' && other.state === 'neutral' && Math.random() < 0.005) {
-                        other.state = 'bad'; // Bad deeds spread
-                        if (Math.random() < 0.5) badScore += 5; // Indirect sin
-                    }
+                    if (woman.state === 'good' && other.state === 'neutral' && Math.random() < 0.005) other.state = 'good';
+                    if (woman.state === 'bad' && other.state === 'neutral' && Math.random() < 0.005) other.state = 'bad';
                 }
             }
         }
@@ -419,11 +375,9 @@
             el.className = 'floater';
             el.style.left = x + 'px';
             el.style.top = y + 'px';
-            
             if(type === 'good') el.style.color = 'var(--green)';
             else if(type === 'bad') el.style.color = 'var(--red)';
             else if(type === 'yellow') el.style.color = 'var(--yellow)';
-            
             el.innerText = text;
             document.body.appendChild(el);
             setTimeout(() => el.remove(), 2000);
@@ -432,26 +386,41 @@
         function loop() {
             ctx.clearRect(0, 0, width, height);
             
-            // Draw Player
+            // --- PASSIVE LOGIC & PULSE ---
+            passiveTimer++;
+            pulseRadius += 0.5;
+            if (pulseRadius > 40) pulseRadius = 15;
+
+            // Increment passive scores continuously
+            if (passiveTimer % 10 === 0) { // Every few frames
+                if (mode === 'hijab') goodScore += 0.2; // Passive Reward (Obedience)
+                else badScore += 0.2; // Passive Sin (Disobedience)
+            }
+
             ctx.save();
             ctx.translate(player.x, player.y);
             
-            // Draw Range Circle
+            // Pulse Effect (Visualizing the State)
+            ctx.beginPath();
+            ctx.arc(0, 0, pulseRadius, 0, Math.PI * 2);
+            ctx.strokeStyle = mode === 'hijab' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Range Circle
             ctx.beginPath();
             ctx.arc(0, 0, GIRL_INFLUENCE_RANGE, 0, Math.PI*2);
             ctx.setLineDash([4, 4]);
             ctx.strokeStyle = mode === 'hijab' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)';
             ctx.lineWidth = 1.5;
             ctx.stroke();
-            ctx.setLineDash([]); // Reset
+            ctx.setLineDash([]);
             
-            // Draw Star (Player)
+            // Star
             ctx.beginPath();
             for (let i = 0; i < 5; i++) {
-                ctx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * 15,
-                           -Math.sin((18 + i * 72) * Math.PI / 180) * 15);
-                ctx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * 7,
-                           -Math.sin((54 + i * 72) * Math.PI / 180) * 7);
+                ctx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * 15, -Math.sin((18 + i * 72) * Math.PI / 180) * 15);
+                ctx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * 7, -Math.sin((54 + i * 72) * Math.PI / 180) * 7);
             }
             ctx.closePath();
             
@@ -466,7 +435,6 @@
             ctx.fill();
             ctx.restore();
 
-            // Draw Agents
             agents.forEach(agent => {
                 agent.update();
                 agent.draw();
@@ -480,25 +448,22 @@
             requestAnimationFrame(loop);
         }
 
-        function movePlayer(x, y) {
+        function movePlayer(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
             player.x = Math.max(20, Math.min(width - 20, x));
             player.y = Math.max(20, Math.min(height - 20, y));
         }
 
-        canvas.addEventListener('mousemove', (e) => {
-            movePlayer(e.clientX, e.clientY - 90); 
-        });
-
+        canvas.addEventListener('mousemove', (e) => movePlayer(e.clientX, e.clientY));
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            const touch = e.touches[0];
-            movePlayer(touch.clientX, touch.clientY - 90);
+            movePlayer(e.touches[0].clientX, e.touches[0].clientY);
         }, { passive: false });
-        
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            const touch = e.touches[0];
-            movePlayer(touch.clientX, touch.clientY - 90);
+            movePlayer(e.touches[0].clientX, e.touches[0].clientY);
         }, { passive: false });
 
     </script>
