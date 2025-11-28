@@ -19,7 +19,8 @@
             --red: #ef4444;
             --blue: #3b82f6;
             --yellow: #f59e0b;
-            --pink: #f472b6;
+            --pink: #ec4899;
+            --skin: #f5d0b0;
         }
         
         body {
@@ -78,22 +79,24 @@
 
         /* Legend Bar */
         .legend-bar {
-            padding: 8px 10px;
+            padding: 10px 10px;
             display: flex;
             justify-content: center;
             border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: #cbd5e1;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 15px;
         }
-        .legend-item { display: flex; align-items: center; gap: 4px; }
-        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-        .dot.blue { background: var(--blue); }
-        .dot.pink { background: var(--pink); }
-        .dot.green { background: var(--green); }
-        .dot.red { background: var(--red); }
-        .dot.yellow { background: var(--yellow); }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        
+        /* CSS representations of the icons for Legend */
+        .icon-legend { width: 14px; height: 14px; display: inline-block; position: relative; border-radius: 50%; }
+        .icon-legend.man { background: var(--blue); }
+        .icon-legend.hijabi { background: var(--green); border: 2px solid var(--green); }
+        .icon-legend.hijabi::after { content:''; position: absolute; top: 2px; left: 2px; width: 6px; height: 6px; background: var(--skin); border-radius: 50%; }
+        .icon-legend.non-hijabi { background: var(--pink); }
+        .icon-legend.non-hijabi::after { content:''; position: absolute; top: 4px; left: 2px; width: 10px; height: 8px; background: var(--skin); border-radius: 50%; }
 
         /* Controls */
         .controls { padding: 10px 15px 20px; }
@@ -179,11 +182,9 @@
 
     <div class="bottom-section">
         <div class="legend-bar">
-            <div class="legend-item"><span class="dot blue"></span> رجال</div>
-            <div class="legend-item"><span class="dot pink"></span> فتيات</div>
-            <div class="legend-item"><span class="dot green"></span> خير جاري</div>
-            <div class="legend-item"><span class="dot red"></span> إثم جاري</div>
-            <div class="legend-item"><span class="dot yellow"></span> اختلاط</div>
+            <div class="legend-item"><span class="icon-legend man"></span> رجال</div>
+            <div class="legend-item"><span class="icon-legend non-hijabi"></span> غير محجبة</div>
+            <div class="legend-item"><span class="icon-legend hijabi"></span> محجبة (تأثرت بالخير)</div>
         </div>
 
         <div class="controls">
@@ -202,10 +203,10 @@
     </div>
 
     <div class="tutorial" id="tutorial">
-        <h2>قاعدة "الدال على الخير"</h2>
-        <p>1. <strong>المكان:</strong> تحكمي في مكانك (النجمة) لتجنب نظرات الرجال (الزرق) الذين يرون من مسافة بعيدة.</p>
-        <p>2. <strong>الأثر:</strong> الفتيات (الوردي) يتأثرن بحالك.</p>
-        <p class="highlight">3. <strong>النتيجة الجارية:</strong> إذا تأثرت فتاة بكِ، فإن كل حسنة تفعلها أو سيئة تقع فيها بسببكِ، تُكتب في ميزانكِ أيضاً.</p>
+        <h2>أثركِ في الفتيات</h2>
+        <p>1. <strong>المجتمع:</strong> كل النساء إما محجبات (أخضر) أو غير محجبات (وردي/أحمر).</p>
+        <p>2. <strong>التأثير:</strong> إذا كنتِ محجبة، قد تتأثر بكِ الفتيات فيرتدين الحجاب (وتكسبين أجرهن). والعكس صحيح.</p>
+        <p class="highlight">3. <strong>الستر:</strong> تجنبي نظرات الرجال (الزرق) للحفاظ على الستر.</p>
         <button class="start-btn" onclick="document.getElementById('tutorial').style.display='none'; initSim();">ابدأ المحاكاة</button>
     </div>
 
@@ -221,8 +222,8 @@
         let passiveTimer = 0;
         let pulseRadius = 0;
         
-        const NPC_COUNT = 22; 
-        const MAN_VISION_RANGE = 200; // Increased significantly
+        const NPC_COUNT = 20; 
+        const MAN_VISION_RANGE = 200; 
         const MAN_MIXING_RANGE = 50;  
         const GIRL_INFLUENCE_RANGE = 85;
         
@@ -246,7 +247,6 @@
 
             reset(randomPos = false) {
                 this.type = Math.random() < 0.4 ? 'man' : 'woman';
-                // Track who caused this agent's current state (null or 'player')
                 this.source = null; 
 
                 if (randomPos) {
@@ -268,9 +268,9 @@
 
                 if (this.type === 'woman') {
                     const r = Math.random();
-                    if (r < 0.2) this.state = 'good';
-                    else if (r < 0.35) this.state = 'bad';
-                    else this.state = 'neutral';
+                    if (r < 0.2) this.state = 'good'; // Hijabi
+                    else if (r < 0.35) this.state = 'bad'; // Heavy Tabarruj
+                    else this.state = 'neutral'; // Standard Non-Hijabi
                 }
             }
 
@@ -281,21 +281,57 @@
             }
 
             draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, 7, 0, Math.PI * 2);
+                // Drawing Faces without eyes (Icons)
+                
                 if (this.type === 'man') {
-                    ctx.fillStyle = '#3b82f6'; 
-                } else {
-                    if (this.state === 'neutral') ctx.fillStyle = '#f472b6'; 
-                    else if (this.state === 'good') ctx.fillStyle = '#10b981'; 
-                    else if (this.state === 'bad') ctx.fillStyle = '#ef4444'; 
-                }
-                ctx.fill();
+                    // Man: Blue Circle (Abstract Head)
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 9, 0, Math.PI * 2);
+                    ctx.fillStyle = '#3b82f6';
+                    ctx.fill();
+                    // Beard hint (simple shape at bottom)
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y + 2, 6, 0.5, Math.PI - 0.5);
+                    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                    ctx.fill();
 
-                // Mark agents influenced by player with a small dot
+                } else {
+                    // WOMAN
+                    
+                    if (this.state === 'good') {
+                        // HIJABI: Green Veil + Face
+                        // Veil
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, 10, 0, Math.PI * 2);
+                        ctx.fillStyle = '#10b981'; // Green
+                        ctx.fill();
+                        // Face (Small oval inside)
+                        ctx.beginPath();
+                        ctx.ellipse(this.x, this.y, 5, 6, 0, 0, Math.PI * 2);
+                        ctx.fillStyle = '#f5d0b0'; // Skin
+                        ctx.fill();
+
+                    } else {
+                        // NON-HIJABI: Hair + Face
+                        const hairColor = (this.state === 'bad') ? '#ef4444' : '#ec4899'; // Red if bad, Pink if neutral
+                        
+                        // Hair (Base circle)
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, 10, 0, Math.PI * 2);
+                        ctx.fillStyle = hairColor;
+                        ctx.fill();
+                        // Face (Oval shifted down slightly so hair shows on top/sides)
+                        ctx.beginPath();
+                        ctx.ellipse(this.x, this.y + 2, 6, 7, 0, 0, Math.PI * 2);
+                        ctx.fillStyle = '#f5d0b0'; // Skin
+                        ctx.fill();
+                    }
+                }
+
+                // Mark agents influenced by player with a small star/dot
                 if (this.source === 'player') {
                     ctx.beginPath();
-                    ctx.arc(this.x, this.y - 12, 3, 0, Math.PI * 2);
+                    ctx.arc(this.x + 8, this.y - 8, 3, 0, Math.PI * 2);
                     ctx.fillStyle = '#fff';
                     ctx.fill();
                 }
@@ -320,32 +356,27 @@
             }
         }
 
-        // 1. Man seeing ANY Woman (Player or Agent)
         function checkManLogic(man) {
-            // A. Man vs Player
             const distP = Math.hypot(player.x - man.x, player.y - man.y);
             if (distP < MAN_VISION_RANGE) {
                 drawVisionLine(man.x, man.y, player.x, player.y, mode === 'hijab', distP < MAN_MIXING_RANGE);
                 
                 if (mode === 'hijab') {
-                    if (distP > MAN_MIXING_RANGE && Math.random() < 0.05) goodScore += 1; // Sitr reward
+                    if (distP > MAN_MIXING_RANGE && Math.random() < 0.05) goodScore += 1; 
                 } else {
-                    if (Math.random() < 0.05) badScore += 5; // Fitnah sin
+                    if (Math.random() < 0.05) badScore += 5; 
                 }
             } else {
-                // Avoidance reward
                 if (mode === 'hijab' && Math.random() < 0.003) {
                     goodScore += 5; 
                     createFloater(player.x, player.y - 20, "حياء +5", "good");
                 }
             }
 
-            // B. Man vs Other Women (Recursive Sin/Reward)
             agents.forEach(woman => {
                 if (woman.type === 'woman' && woman.source === 'player') {
                     const distW = Math.hypot(woman.x - man.x, woman.y - man.y);
                     if (distW < MAN_VISION_RANGE) {
-                        // Draw faint line to show connection
                         ctx.beginPath();
                         ctx.moveTo(man.x, man.y);
                         ctx.lineTo(woman.x, woman.y);
@@ -354,10 +385,8 @@
                         ctx.stroke();
 
                         if (woman.state === 'good') {
-                            // She is modest because of you -> You get reward
                             if (Math.random() < 0.05) goodScore += 0.5;
                         } else if (woman.state === 'bad') {
-                            // She is immodest because of you -> You get sin
                             if (Math.random() < 0.05) badScore += 2;
                         }
                     }
@@ -385,48 +414,51 @@
             }
         }
 
-        // 2. Woman Influencing Woman (Viral Effect)
         function checkWomanLogic(woman) {
-            // A. Player influencing Woman
             const distP = Math.hypot(player.x - woman.x, player.y - woman.y);
+            
+            // Player Influence
             if (distP < GIRL_INFLUENCE_RANGE) {
                 if (mode === 'hijab') {
-                    if (woman.state === 'neutral' && Math.random() < 0.02) {
+                    // Influence non-hijabi (neutral or bad) to become hijabi (good)
+                    if (woman.state !== 'good' && Math.random() < 0.02) {
                         woman.state = 'good';
-                        woman.source = 'player'; // YOU caused this
+                        woman.source = 'player'; 
                         goodScore += 40; 
-                        createFloater(woman.x, woman.y, "تأثرت بكِ!", "good");
+                        createFloater(woman.x, woman.y, "تحجبت بسببكِ!", "good");
                     }
                 } else {
-                    if (woman.state === 'neutral' && Math.random() < 0.02) {
+                    // Influence neutral/good to become bad
+                    if (woman.state !== 'bad' && Math.random() < 0.02) {
                         woman.state = 'bad';
-                        woman.source = 'player'; // YOU caused this
+                        woman.source = 'player'; 
                         badScore += 40;
                         createFloater(woman.x, woman.y, "تأثرت بـ تبرجكِ", "bad");
                     }
                 }
             }
 
-            // B. Woman influencing Woman (Chain Reaction)
-            // If 'woman' was influenced by player, and she influences 'other', 'other' is also attributed to player
+            // Chain Influence
             agents.forEach(other => {
                 if (other === woman || other.type === 'man') return;
                 const d2 = Math.hypot(woman.x - other.x, woman.y - other.y);
                 
-                if (d2 < 60 && other.state === 'neutral') {
-                    if (woman.state === 'good' && Math.random() < 0.01) {
+                if (d2 < 60) {
+                    // Hijabi influencing others
+                    if (woman.state === 'good' && other.state !== 'good' && Math.random() < 0.01) {
                         other.state = 'good';
                         if (woman.source === 'player') {
-                            other.source = 'player'; // Chain continues
-                            goodScore += 20; // Indirect reward
+                            other.source = 'player';
+                            goodScore += 20; 
                             createFloater(other.x, other.y, "أثر جاري +", "good");
                         }
                     }
-                    if (woman.state === 'bad' && Math.random() < 0.01) {
+                    // Mutabarrijah influencing others
+                    if (woman.state === 'bad' && other.state !== 'bad' && Math.random() < 0.01) {
                         other.state = 'bad';
                         if (woman.source === 'player') {
-                            other.source = 'player'; // Chain continues
-                            badScore += 20; // Indirect sin
+                            other.source = 'player';
+                            badScore += 20; 
                             createFloater(other.x, other.y, "وزر جاري +", "bad");
                         }
                     }
@@ -459,7 +491,7 @@
                 else badScore += 0.2; 
             }
 
-            // Draw Player
+            // Draw Player (The Star)
             ctx.save();
             ctx.translate(player.x, player.y);
             
@@ -479,22 +511,33 @@
             ctx.stroke();
             ctx.setLineDash([]);
             
-            // Star
+            // Draw Player Icon (Hijabi or Non-Hijabi Face)
+            // To make the player distinct, we can keep the STAR shape but color it appropriately,
+            // OR draw a larger version of the Face Icon. Let's keep the STAR for "Game Player" feeling but add the Face details inside.
+            // Actually, simpler: Draw a Large Star with the appropriate color.
+            
             ctx.beginPath();
             for (let i = 0; i < 5; i++) {
-                ctx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * 15, -Math.sin((18 + i * 72) * Math.PI / 180) * 15);
-                ctx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * 7, -Math.sin((54 + i * 72) * Math.PI / 180) * 7);
+                ctx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * 18, -Math.sin((18 + i * 72) * Math.PI / 180) * 18);
+                ctx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * 8, -Math.sin((54 + i * 72) * Math.PI / 180) * 8);
             }
             ctx.closePath();
+            
             if (mode === 'hijab') {
                 ctx.fillStyle = '#10b981'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
             } else {
                 ctx.fillStyle = '#ef4444';
             }
             ctx.fill();
+            
+            // Add a small face circle inside the star to link to the icon style
+            ctx.beginPath();
+            ctx.arc(0, 0, 5, 0, Math.PI*2);
+            ctx.fillStyle = '#f5d0b0';
+            ctx.fill();
+
             ctx.restore();
 
-            // Update Agents
             agents.forEach(agent => {
                 agent.update();
                 agent.draw();
