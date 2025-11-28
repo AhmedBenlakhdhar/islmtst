@@ -38,10 +38,9 @@
             display: flex;
             justify-content: space-between;
             padding: 10px 15px;
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(5px);
+            background: rgba(30, 41, 59, 0.98);
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            z-index: 10;
+            z-index: 20;
         }
 
         .stat-box { text-align: center; min-width: 90px; }
@@ -49,6 +48,20 @@
         .stat-val { font-size: 1.2rem; font-weight: 900; direction: ltr; display: block; }
         .stat-val.good { color: var(--green); text-shadow: 0 0 15px rgba(16, 185, 129, 0.3); }
         .stat-val.bad { color: var(--red); text-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+
+        /* Event Log Bar */
+        .event-log {
+            height: 24px;
+            background: rgba(15, 23, 42, 0.9);
+            color: #cbd5e1;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            z-index: 15;
+            transition: color 0.3s;
+        }
 
         /* Canvas Container */
         .canvas-container {
@@ -90,10 +103,10 @@
         }
         .legend-item { display: flex; align-items: center; gap: 6px; }
         
-        /* CSS representations of the icons for Legend */
+        /* Icons for Legend */
         .icon-legend { width: 14px; height: 14px; display: inline-block; position: relative; border-radius: 50%; }
         .icon-legend.man { background: var(--blue); }
-        .icon-legend.hijabi { background: var(--green); border: 2px solid var(--green); }
+        .icon-legend.hijabi { background: var(--green); }
         .icon-legend.hijabi::after { content:''; position: absolute; top: 2px; left: 2px; width: 6px; height: 6px; background: var(--skin); border-radius: 50%; }
         .icon-legend.non-hijabi { background: var(--pink); }
         .icon-legend.non-hijabi::after { content:''; position: absolute; top: 4px; left: 2px; width: 10px; height: 8px; background: var(--skin); border-radius: 50%; }
@@ -129,36 +142,40 @@
             font-weight: bold;
             pointer-events: none;
             white-space: nowrap;
-            animation: floatAndFade 2s forwards;
+            animation: floatAndFade 2.5s forwards;
             z-index: 5;
             text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         }
 
         @keyframes floatAndFade {
             0% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-30px) scale(1.05); }
+            100% { opacity: 0; transform: translateY(-35px) scale(1.05); }
         }
 
         /* Tutorial Overlay */
         .tutorial {
             position: fixed; top:0; left:0; width:100%; height:100%;
-            background: rgba(0,0,0,0.92);
+            background: rgba(15, 23, 42, 0.96);
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             z-index: 100;
-            padding: 20px;
+            padding: 25px;
             box-sizing: border-box;
             text-align: center;
         }
-        .tutorial h2 { color: var(--green); margin-top: 0; font-size: 1.5rem; }
-        .tutorial p { line-height: 1.6; max-width: 450px; color: #e2e8f0; font-size: 1rem; margin-bottom: 15px; }
-        .tutorial .highlight { color: #facc15; font-weight: bold; }
+        .tutorial h2 { color: var(--green); margin-top: 0; font-size: 1.8rem; margin-bottom: 1.5rem; }
+        .tutorial-content { text-align: right; width: 100%; max-width: 400px; margin-bottom: 2rem; }
+        .tutorial-step { margin-bottom: 15px; display: flex; align-items: flex-start; gap: 10px; }
+        .step-icon { font-size: 1.2rem; min-width: 25px; }
+        .step-text { color: #e2e8f0; font-size: 1rem; line-height: 1.5; }
+        .step-text strong { color: #fff; }
+        
         .start-btn {
-            margin-top: 20px;
             background: var(--green); color: #0f172a;
-            border: none; padding: 12px 30px;
-            font-size: 1.1rem; font-weight: bold;
+            border: none; padding: 15px 40px;
+            font-size: 1.2rem; font-weight: bold;
             border-radius: 50px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
         }
 
     </style>
@@ -176,43 +193,65 @@
         </div>
     </div>
 
+    <!-- Activity Log -->
+    <div class="event-log" id="eventLog">
+        المحاكاة جارية...
+    </div>
+
     <div class="canvas-container">
         <canvas id="simCanvas"></canvas>
     </div>
 
     <div class="bottom-section">
         <div class="legend-bar">
-            <div class="legend-item"><span class="icon-legend man"></span> رجال</div>
+            <div class="legend-item"><span class="icon-legend man"></span> رجل</div>
             <div class="legend-item"><span class="icon-legend non-hijabi"></span> غير محجبة</div>
             <div class="legend-item"><span class="icon-legend hijabi"></span> محجبة (تأثرت بالخير)</div>
         </div>
 
         <div class="controls">
-            <div class="instruction">أنتِ النجمة ⭐. الأثر ينتقل منكِ إلى غيركِ، ثم يعود إليكِ.</div>
+            <div class="instruction">أنتِ النجمة ⭐. الأثر ينتقل منكِ، ثم يعود إليكِ.</div>
             <div class="mode-switch">
                 <button class="mode-btn active-hijab" id="btnHijab" onclick="setMode('hijab')">
                     حجاب
-                    <span>(طاعة مستمرة + ستر)</span>
+                    <span>(طاعة + ستر)</span>
                 </button>
                 <button class="mode-btn" id="btnTabarruj" onclick="setMode('tabarruj')">
                     تبرج
-                    <span>(إثم مستمر + فتنة)</span>
+                    <span>(إثم + فتنة)</span>
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Intro / Tutorial -->
     <div class="tutorial" id="tutorial">
-        <h2>أثركِ في الفتيات</h2>
-        <p>1. <strong>المجتمع:</strong> كل النساء إما محجبات (أخضر) أو غير محجبات (وردي/أحمر).</p>
-        <p>2. <strong>التأثير:</strong> إذا كنتِ محجبة، قد تتأثر بكِ الفتيات فيرتدين الحجاب (وتكسبين أجرهن). والعكس صحيح.</p>
-        <p class="highlight">3. <strong>الستر:</strong> تجنبي نظرات الرجال (الزرق) للحفاظ على الستر.</p>
+        <h2>أثركِ أعمق مما تظنين</h2>
+        
+        <div class="tutorial-content">
+            <div class="tutorial-step">
+                <span class="step-icon">🧕</span>
+                <div class="step-text"><strong>أنتِ قدوة:</strong> كل فتاة ترتدين الحجاب بسببك، أو تقلد تبرجك، ستجدين أثر أفعالها في ميزانك (خير جاري أو وزر جاري).</div>
+            </div>
+            
+            <div class="tutorial-step">
+                <span class="step-icon">👀</span>
+                <div class="step-text"><strong>العيون:</strong> نظرات الرجال (الزرق) إليكِ وأنتِ مستترة = أجر. وأنتِ متبرجة = وزر.</div>
+            </div>
+            
+            <div class="tutorial-step">
+                <span class="step-icon">⭐</span>
+                <div class="step-text"><strong>المهمة:</strong> حركي "النجمة" للابتعاد عن الرجال (ستر) والاقتراب من الفتيات (تأثير).</div>
+            </div>
+        </div>
+
         <button class="start-btn" onclick="document.getElementById('tutorial').style.display='none'; initSim();">ابدأ المحاكاة</button>
     </div>
 
     <script>
         const canvas = document.getElementById('simCanvas');
         const ctx = canvas.getContext('2d');
+        const eventLog = document.getElementById('eventLog');
         
         let width, height;
         let mode = 'hijab'; 
@@ -229,6 +268,19 @@
         
         const player = { x: 0, y: 0 };
         let agents = [];
+
+        function logEvent(text, type) {
+            eventLog.innerText = text;
+            if (type === 'good') eventLog.style.color = 'var(--green)';
+            else if (type === 'bad') eventLog.style.color = 'var(--red)';
+            else eventLog.style.color = 'var(--yellow)';
+            
+            // Clear log after 3 seconds
+            clearTimeout(window.logTimeout);
+            window.logTimeout = setTimeout(() => {
+                eventLog.innerText = "";
+            }, 3000);
+        }
 
         function resize() {
             width = canvas.clientWidth;
@@ -281,15 +333,13 @@
             }
 
             draw() {
-                // Drawing Faces without eyes (Icons)
-                
                 if (this.type === 'man') {
-                    // Man: Blue Circle (Abstract Head)
+                    // Man: Blue Circle
                     ctx.beginPath();
                     ctx.arc(this.x, this.y, 9, 0, Math.PI * 2);
                     ctx.fillStyle = '#3b82f6';
                     ctx.fill();
-                    // Beard hint (simple shape at bottom)
+                    // Beard hint
                     ctx.beginPath();
                     ctx.arc(this.x, this.y + 2, 6, 0.5, Math.PI - 0.5);
                     ctx.fillStyle = 'rgba(0,0,0,0.2)';
@@ -297,38 +347,32 @@
 
                 } else {
                     // WOMAN
-                    
                     if (this.state === 'good') {
-                        // HIJABI: Green Veil + Face
-                        // Veil
+                        // HIJABI
                         ctx.beginPath();
                         ctx.arc(this.x, this.y, 10, 0, Math.PI * 2);
-                        ctx.fillStyle = '#10b981'; // Green
+                        ctx.fillStyle = '#10b981'; // Green Veil
                         ctx.fill();
-                        // Face (Small oval inside)
                         ctx.beginPath();
                         ctx.ellipse(this.x, this.y, 5, 6, 0, 0, Math.PI * 2);
                         ctx.fillStyle = '#f5d0b0'; // Skin
                         ctx.fill();
 
                     } else {
-                        // NON-HIJABI: Hair + Face
-                        const hairColor = (this.state === 'bad') ? '#ef4444' : '#ec4899'; // Red if bad, Pink if neutral
+                        // NON-HIJABI
+                        const hairColor = (this.state === 'bad') ? '#ef4444' : '#ec4899'; 
                         
-                        // Hair (Base circle)
                         ctx.beginPath();
                         ctx.arc(this.x, this.y, 10, 0, Math.PI * 2);
                         ctx.fillStyle = hairColor;
                         ctx.fill();
-                        // Face (Oval shifted down slightly so hair shows on top/sides)
                         ctx.beginPath();
                         ctx.ellipse(this.x, this.y + 2, 6, 7, 0, 0, Math.PI * 2);
-                        ctx.fillStyle = '#f5d0b0'; // Skin
+                        ctx.fillStyle = '#f5d0b0'; 
                         ctx.fill();
                     }
                 }
 
-                // Mark agents influenced by player with a small star/dot
                 if (this.source === 'player') {
                     ctx.beginPath();
                     ctx.arc(this.x + 8, this.y - 8, 3, 0, Math.PI * 2);
@@ -350,29 +394,43 @@
             if (mode === 'hijab') {
                 document.getElementById('btnHijab').className = 'mode-btn active-hijab';
                 document.getElementById('btnTabarruj').className = 'mode-btn';
+                logEvent("بدأ احتساب أجر الطاعة المستمرة..", "good");
             } else {
                 document.getElementById('btnHijab').className = 'mode-btn';
                 document.getElementById('btnTabarruj').className = 'mode-btn active-tabarruj';
+                logEvent("بدأ احتساب إثم المعصية المستمر..", "bad");
             }
         }
 
         function checkManLogic(man) {
             const distP = Math.hypot(player.x - man.x, player.y - man.y);
+            
+            // A. Man vs Player
             if (distP < MAN_VISION_RANGE) {
                 drawVisionLine(man.x, man.y, player.x, player.y, mode === 'hijab', distP < MAN_MIXING_RANGE);
                 
                 if (mode === 'hijab') {
-                    if (distP > MAN_MIXING_RANGE && Math.random() < 0.05) goodScore += 1; 
+                    if (distP > MAN_MIXING_RANGE && Math.random() < 0.05) {
+                        goodScore += 1; 
+                        // Log occasionally
+                        if(Math.random() < 0.1) logEvent("أجر ستر عن رجل (+1)", "good");
+                    }
                 } else {
-                    if (Math.random() < 0.05) badScore += 5; 
+                    if (Math.random() < 0.05) {
+                        badScore += 5; 
+                        if(Math.random() < 0.1) logEvent("إثم فتنة رجل (-5)", "bad");
+                    }
                 }
             } else {
+                // Avoidance (Long range protection)
                 if (mode === 'hijab' && Math.random() < 0.003) {
                     goodScore += 5; 
                     createFloater(player.x, player.y - 20, "حياء +5", "good");
+                    logEvent("أجر الابتعاد عن الرجال (+5)", "good");
                 }
             }
 
+            // B. Man vs Influenced Women (Chain Reaction)
             agents.forEach(woman => {
                 if (woman.type === 'woman' && woman.source === 'player') {
                     const distW = Math.hypot(woman.x - man.x, woman.y - man.y);
@@ -385,9 +443,15 @@
                         ctx.stroke();
 
                         if (woman.state === 'good') {
-                            if (Math.random() < 0.05) goodScore += 0.5;
+                            if (Math.random() < 0.05) {
+                                goodScore += 0.5;
+                                if(Math.random() < 0.05) logEvent("أجر ستر جاري من فتاة (+0.5)", "good");
+                            }
                         } else if (woman.state === 'bad') {
-                            if (Math.random() < 0.05) badScore += 2;
+                            if (Math.random() < 0.05) {
+                                badScore += 2;
+                                if(Math.random() < 0.05) logEvent("وزر فتنة جاري من فتاة (-2)", "bad");
+                            }
                         }
                     }
                 }
@@ -402,14 +466,14 @@
             
             if (isHijab) {
                 if (isMixing) {
-                    ctx.strokeStyle = '#f59e0b'; // Yellow
+                    ctx.strokeStyle = '#f59e0b';
                     ctx.setLineDash([2, 2]); ctx.stroke(); ctx.setLineDash([]);
                 } else {
-                    ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)'; // Green
+                    ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)';
                     ctx.stroke();
                 }
             } else {
-                ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)'; // Red
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
                 ctx.stroke();
             }
         }
@@ -420,20 +484,20 @@
             // Player Influence
             if (distP < GIRL_INFLUENCE_RANGE) {
                 if (mode === 'hijab') {
-                    // Influence non-hijabi (neutral or bad) to become hijabi (good)
                     if (woman.state !== 'good' && Math.random() < 0.02) {
                         woman.state = 'good';
                         woman.source = 'player'; 
                         goodScore += 40; 
                         createFloater(woman.x, woman.y, "تحجبت بسببكِ!", "good");
+                        logEvent("فتاة تأثرت بسترك (+40)", "good");
                     }
                 } else {
-                    // Influence neutral/good to become bad
                     if (woman.state !== 'bad' && Math.random() < 0.02) {
                         woman.state = 'bad';
                         woman.source = 'player'; 
                         badScore += 40;
                         createFloater(woman.x, woman.y, "تأثرت بـ تبرجكِ", "bad");
+                        logEvent("فتاة تأثرت بتبرجك (-40)", "bad");
                     }
                 }
             }
@@ -444,22 +508,22 @@
                 const d2 = Math.hypot(woman.x - other.x, woman.y - other.y);
                 
                 if (d2 < 60) {
-                    // Hijabi influencing others
                     if (woman.state === 'good' && other.state !== 'good' && Math.random() < 0.01) {
                         other.state = 'good';
                         if (woman.source === 'player') {
                             other.source = 'player';
                             goodScore += 20; 
                             createFloater(other.x, other.y, "أثر جاري +", "good");
+                            logEvent("سلسلة تأثير خير جارية (+20)", "good");
                         }
                     }
-                    // Mutabarrijah influencing others
                     if (woman.state === 'bad' && other.state !== 'bad' && Math.random() < 0.01) {
                         other.state = 'bad';
                         if (woman.source === 'player') {
                             other.source = 'player';
                             badScore += 20; 
                             createFloater(other.x, other.y, "وزر جاري +", "bad");
+                            logEvent("سلسلة تأثير سوء جارية (-20)", "bad");
                         }
                     }
                 }
@@ -476,7 +540,7 @@
             else if(type === 'yellow') el.style.color = 'var(--yellow)';
             el.innerText = text;
             document.body.appendChild(el);
-            setTimeout(() => el.remove(), 2000);
+            setTimeout(() => el.remove(), 2500);
         }
 
         function loop() {
@@ -511,11 +575,7 @@
             ctx.stroke();
             ctx.setLineDash([]);
             
-            // Draw Player Icon (Hijabi or Non-Hijabi Face)
-            // To make the player distinct, we can keep the STAR shape but color it appropriately,
-            // OR draw a larger version of the Face Icon. Let's keep the STAR for "Game Player" feeling but add the Face details inside.
-            // Actually, simpler: Draw a Large Star with the appropriate color.
-            
+            // Draw Large Star Body
             ctx.beginPath();
             for (let i = 0; i < 5; i++) {
                 ctx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * 18, -Math.sin((18 + i * 72) * Math.PI / 180) * 18);
@@ -530,9 +590,9 @@
             }
             ctx.fill();
             
-            // Add a small face circle inside the star to link to the icon style
+            // Face detail (Small oval)
             ctx.beginPath();
-            ctx.arc(0, 0, 5, 0, Math.PI*2);
+            ctx.arc(0, 0, 6, 0, Math.PI*2);
             ctx.fillStyle = '#f5d0b0';
             ctx.fill();
 
